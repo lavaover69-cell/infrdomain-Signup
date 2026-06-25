@@ -1,10 +1,146 @@
 <!DOCTYPE html>
+
 <html>
 <head>
 <title>Infrdomain Signup</title>
+
+<style>
+body{
+  font-family:Arial;
+  background:#0f0f1a;
+  color:white;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  margin:0;
+}
+
+.box{
+  background:#1c1c2e;
+  padding:20px;
+  border-radius:10px;
+  width:320px;
+}
+
+input{
+  width:100%;
+  padding:10px;
+  margin:5px 0;
+  box-sizing:border-box;
+}
+
+button{
+  width:100%;
+  padding:10px;
+  margin-top:10px;
+  cursor:pointer;
+}
+
+#msg{
+  margin-top:10px;
+}
+</style>
+
 </head>
+
 <body>
-<h1>Signup Page</h1>
-<p>If you can see this, GitHub Pages works.</p>
+
+<div class="box">
+  <h2>Create Account</h2>
+
+  <input id="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
+  <input id="username" placeholder="Username">
+
+<button onclick="signup()">Create Account</button>
+
+  <div id="msg"></div>
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+
+import {
+  getAuth,
+  createUserWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "ps99-trade-board.firebaseapp.com",
+  projectId: "ps99-trade-board",
+  storageBucket: "ps99-trade-board.firebasestorage.app",
+  messagingSenderId: "983182657873",
+  appId: "YOUR_APP_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+window.signup = async function() {
+
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+  const username = document.getElementById("username").value.trim();
+
+  const msg = document.getElementById("msg");
+
+  if(!email || !password || !username){
+    msg.innerText = "Fill in all fields.";
+    return;
+  }
+
+  const usernameLower = username.toLowerCase();
+
+  const usernameRef = doc(db, "usernames", usernameLower);
+  const usernameSnap = await getDoc(usernameRef);
+
+  if(usernameSnap.exists()){
+    msg.innerText = "Username already taken.";
+    return;
+  }
+
+  try{
+
+    const cred =
+      await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+    await setDoc(usernameRef,{
+      username: username,
+      usernameLower: usernameLower,
+      email: email,
+      uid: cred.user.uid,
+      createdAt: Date.now()
+    });
+
+    msg.innerText = "Account created!";
+
+    setTimeout(()=>{
+      window.location.href =
+        "https://lavaover69.github.io/infrdomain-login/";
+    },1000);
+
+  }catch(err){
+    msg.innerText = err.message;
+  }
+
+};
+
+</script>
+
 </body>
 </html>
