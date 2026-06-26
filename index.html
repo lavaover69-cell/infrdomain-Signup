@@ -2,7 +2,7 @@
 
 <html>
 <head>
-<title>Signup</title>
+<title>Sign Up</title>
 
 <style>
 body {
@@ -32,6 +32,12 @@ button {
   width: 100%;
   padding: 10px;
   margin-top: 10px;
+  cursor: pointer;
+}
+
+#msg {
+  margin-top: 10px;
+  font-size: 14px;
 }
 </style>
 
@@ -40,12 +46,14 @@ button {
 <body>
 
 <div class="box">
-  <h2>Sign Up</h2>
+  <h2>Create Account</h2>
+
+  <!-- ONLY USERNAME + PASSWORD -->
 
   <input id="username" placeholder="Username">
   <input id="password" type="password" placeholder="Password">
 
-<button onclick="signup()">Create Account</button>
+<button onclick="signup()">Sign Up</button>
 
   <div id="msg"></div>
 </div>
@@ -99,17 +107,16 @@ window.signup = async function () {
     return;
   }
 
-  // hidden email generation (required by Firebase)
+  // hidden email (NOT shown to user)
   const email = username + "@infrdomain.local";
 
   try {
-
     const userCred = await createUserWithEmailAndPassword(auth, email, password);
 
-    await setDoc(doc(db, "usernames", username), {
+    await setDoc(ref, {
       username,
-      email,
-      uid: userCred.user.uid
+      uid: userCred.user.uid,
+      email
     });
 
     localStorage.setItem("username", username);
@@ -118,11 +125,12 @@ window.signup = async function () {
     msg.innerText = "Account created!";
 
     setTimeout(() => {
-      window.location.href = "https://lavaover69.github.io/infrdomain-login/";
+      window.location.href =
+        "https://sites.google.com/view/infrdomain/home/log-in?authuser=0";
     }, 1000);
 
-  } catch (err) {
-    msg.innerText = err.message;
+  } catch (e) {
+    msg.innerText = e.message;
   }
 };
 
