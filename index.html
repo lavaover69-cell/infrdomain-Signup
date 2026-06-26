@@ -2,43 +2,36 @@
 
 <html>
 <head>
-<title>Infrdomain Signup</title>
+<title>Signup</title>
 
 <style>
-body{
-  font-family:Arial;
-  background:#0f0f1a;
-  color:white;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
-  margin:0;
+body {
+  font-family: Arial;
+  background: #0f0f1a;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
 }
 
-.box{
-  background:#1c1c2e;
-  padding:20px;
-  border-radius:10px;
-  width:320px;
+.box {
+  background: #1c1c2e;
+  padding: 20px;
+  border-radius: 10px;
+  width: 300px;
 }
 
-input{
-  width:100%;
-  padding:10px;
-  margin:5px 0;
-  box-sizing:border-box;
+input {
+  width: 100%;
+  padding: 10px;
+  margin: 6px 0;
 }
 
-button{
-  width:100%;
-  padding:10px;
-  margin-top:10px;
-  cursor:pointer;
-}
-
-#msg{
-  margin-top:10px;
+button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
 }
 </style>
 
@@ -47,11 +40,10 @@ button{
 <body>
 
 <div class="box">
-  <h2>Create Account</h2>
+  <h2>Sign Up</h2>
 
-  <input id="email" placeholder="Email">
-  <input id="password" type="password" placeholder="Password">
   <input id="username" placeholder="Username">
+  <input id="password" type="password" placeholder="Password">
 
 <button onclick="signup()">Create Account</button>
 
@@ -70,8 +62,8 @@ import {
 import {
   getFirestore,
   doc,
-  getDoc,
-  setDoc
+  setDoc,
+  getDoc
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -87,57 +79,51 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-window.signup = async function() {
+window.signup = async function () {
 
-  const email = document.getElementById("email").value.trim();
+  const username = document.getElementById("username").value.trim().toLowerCase();
   const password = document.getElementById("password").value;
-  const username = document.getElementById("username").value.trim();
-
   const msg = document.getElementById("msg");
 
-  if(!email || !password || !username){
-    msg.innerText = "Fill in all fields.";
+  if (!username || !password) {
+    msg.innerText = "Fill all fields";
     return;
   }
 
-  const usernameLower = username.toLowerCase();
+  // check if username exists
+  const ref = doc(db, "usernames", username);
+  const snap = await getDoc(ref);
 
-  const usernameRef = doc(db, "usernames", usernameLower);
-  const usernameSnap = await getDoc(usernameRef);
-
-  if(usernameSnap.exists()){
-    msg.innerText = "Username already taken.";
+  if (snap.exists()) {
+    msg.innerText = "Username already taken";
     return;
   }
 
-  try{
+  // hidden email generation (required by Firebase)
+  const email = username + "@infrdomain.local";
 
-    const cred =
-      await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
+  try {
 
-    await setDoc(usernameRef,{
-      username: username,
-      usernameLower: usernameLower,
-      email: email,
-      uid: cred.user.uid,
-      createdAt: Date.now()
+    const userCred = await createUserWithEmailAndPassword(auth, email, password);
+
+    await setDoc(doc(db, "usernames", username), {
+      username,
+      email,
+      uid: userCred.user.uid
     });
+
+    localStorage.setItem("username", username);
+    localStorage.setItem("uid", userCred.user.uid);
 
     msg.innerText = "Account created!";
 
-    setTimeout(()=>{
-      window.location.href =
-        "https://lavaover69.github.io/infrdomain-login/";
-    },1000);
+    setTimeout(() => {
+      window.location.href = "https://lavaover69.github.io/infrdomain-login/";
+    }, 1000);
 
-  }catch(err){
+  } catch (err) {
     msg.innerText = err.message;
   }
-
 };
 
 </script>
